@@ -149,7 +149,8 @@ private:
   }
 
   void mov(const Laberinto &m, const size_type xx, const size_type yy) {
-    static auto mz = m.getlaberinto();
+    static auto mz =
+        m.getlaberinto(); // obtiene el laberinto para poder mover el personaje
 
     if (x + xx <= 0 || x + xx >= m.getancho() || y + yy <= 0 ||
         y + yy >= m.getalto())
