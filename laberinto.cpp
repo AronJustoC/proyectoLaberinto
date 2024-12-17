@@ -93,7 +93,7 @@ public:
     }
   }
 
-  void Imprimir(const Color &color) {
+  void imprimir(const Color &color) {
     attron(COLOR_PAIR(color));
     move(0, 0);
     for (size_type y = 0; y < alto; ++y) {
@@ -104,4 +104,66 @@ public:
     }
     attroff(COLOR_PAIR(color));
   }
+
+  const char *getlaberinto() const noexcept { return laberinto; }
+  const size_type getancho() const noexcept { return ancho; }
+  const size_type getalto() const noexcept { return alto; }
+};
+
+class Jugador {
+  using size_type = long;
+
+private:
+  size_type x;
+  size_type y;
+  size_type contador;
+
+  explicit Jugador(const size_type xx, const size_type yy)
+      : x{xx}, y{yy}, contador{0} {}
+
+  Jugador() : x{1}, y{0}, contador{0} {}
+
+  void imprimir(const Color &color) {
+    attron(COLOR_PAIR(color));
+    move(y, x * 2);
+    printw("00");
+    attroff(COLOR_PAIR(color));
+  }
+
+  void imprimirInfo(const Laberinto &m, const Color &color) {
+    attron(COLOR_PAIR(color));
+    move(m.getalto() + 1, 0); // Impresion una linea debajo del laberinto
+    printw("Posicion actual X: %li, Y: %li\n Total de movimientos: %li", x, y,
+           contador);
+    attroff(COLOR_PAIR(color));
+  }
+
+  void imprimirGanador(const Color &color) {
+    move(0, 0);
+    clear();
+    refresh();
+    attron(COLOR_PAIR(color));
+    printw("Ganaste!!!\n Total de movimientos %li", contador);
+    getch();
+    attroff(COLOR_PAIR(color));
+  }
+
+  void mov(const Laberinto &m, const size_type xx, const size_type yy) {
+    static auto mz = m.getlaberinto();
+
+    if (x + xx <= 0 || x + xx >= m.getancho() || y + yy <= 0 ||
+        y + yy >= m.getalto())
+      return;
+
+    if (mz[(y + yy) * m.getancho() + (x + xx)] == 1)
+      return;
+
+    x += xx;
+    y += yy;
+    ++contador;
+  }
+
+  const size_type getpos_x() const noexcept { return x; }
+  const size_type getpos_y() const noexcept { return y; }
+  const size_type getcontador() const noexcept { return contador; }
 };
