@@ -152,10 +152,11 @@ private:
     static auto mz =
         m.getlaberinto(); // obtiene el laberinto para poder mover el personaje
 
+    // Si pa posicion estan fuera del laberinto no se mueve
     if (x + xx <= 0 || x + xx >= m.getancho() || y + yy <= 0 ||
         y + yy >= m.getalto())
       return;
-
+    // Si el laberinto esta ocupado por un muro no se mueve
     if (mz[(y + yy) * m.getancho() + (x + xx)] == 1)
       return;
 
@@ -167,4 +168,33 @@ private:
   const size_type getpos_x() const noexcept { return x; }
   const size_type getpos_y() const noexcept { return y; }
   const size_type getcontador() const noexcept { return contador; }
+};
+
+class VentanaCurses {
+private:
+  int x;
+  int y;
+
+public:
+  VentanaCurses() : x{0}, y{0} {
+    initscr();
+    if (has_colors() == FALSE) {
+      endwin();
+      cout << "Tu terminal no soporta colores\n";
+      exit(1);
+    }
+    noecho();
+    keypad(stdscr, TRUE);
+    start_color();
+    curs_set(0);
+    init_pair(1, COLOR_RED, COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(3, COLOR_WHITE, COLOR_BLACK);
+    getmaxyx(stdscr, y, x);
+  }
+
+  ~VentanaCurses() noexcept { endwin(); }
+
+  const int getx() const noexcept { return x; }
+  const int gety() const noexcept { return y; }
 };
