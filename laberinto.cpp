@@ -4,7 +4,7 @@
 
 using namespace std;
 
-enum class Color { red = 1, green, white };
+enum class Color { rojo = 1, verde, blanco };
 
 class Laberinto {
   using size_type = unsigned long;
@@ -93,7 +93,7 @@ public:
     }
   }
 
-  void Imprimir(const Color &color) {
+  void imprimir(const Color &color) {
     attron(COLOR_PAIR(color));
     move(0, 0);
     for (size_type y = 0; y < alto; ++y) {
@@ -104,4 +104,155 @@ public:
     }
     attroff(COLOR_PAIR(color));
   }
+
+  const char *getlaberinto() const noexcept { return laberinto; }
+  const size_type getancho() const noexcept { return ancho; }
+  const size_type getalto() const noexcept { return alto; }
 };
+
+class Jugador {
+  using size_type = long;
+
+private:
+  size_type x;
+  size_type y;
+  size_type contador;
+
+public:
+  explicit Jugador(const size_type xx, const size_type yy)
+      : x{xx}, y{yy}, contador{0} {}
+
+  Jugador() : x{1}, y{0}, contador{0} {}
+
+  void imprimir(const Color &color) {
+    attron(COLOR_PAIR(color));
+    move(y, x * 2);
+    printw("00");
+    attroff(COLOR_PAIR(color));
+  }
+
+  void imprimirInfo(const Laberinto &m, const Color &color) {
+    attron(COLOR_PAIR(color));
+    move(m.getalto() + 1, 0); // Impresion una linea debajo del laberinto
+    printw("Posicion actual X: %li, Y: %li\n Total de movimientos: %li", x, y,
+           contador);
+    attroff(COLOR_PAIR(color));
+  }
+
+  void imprimirGanador(const Color &color) {
+    move(0, 0);
+    clear();
+    refresh();
+    attron(COLOR_PAIR(color));
+    printw("Ganaste!!!\n Total de movimientos %li", contador);
+    getch();
+    attroff(COLOR_PAIR(color));
+  }
+
+  void mov(const Laberinto &m, const size_type xx, const size_type yy) {
+    static auto mz =
+        m.getlaberinto(); // obtiene el laberinto para poder mover el personaje
+
+    // Si pa posicion estan fuera del laberinto no se mueve
+    if (x + xx <= 0 || x + xx >= m.getancho() || y + yy <= 0 ||
+        y + yy >= m.getalto())
+      return;
+    // Si el laberinto esta ocupado por un muro no se mueve
+    if (mz[(y + yy) * m.getancho() + (x + xx)] == 1)
+      return;
+
+    x += xx;
+    y += yy;
+    ++contador;
+  }
+
+  const size_type getpos_x() const noexcept { return x; }
+  const size_type getpos_y() const noexcept { return y; }
+  const size_type getcontador() const noexcept { return contador; }
+};
+
+class VentanaCurses {
+private:
+  int x;
+  int y;
+
+public:
+  VentanaCurses() : x{0}, y{0} {
+    // Establecer el entorno local para soportar UTF-8
+    setlocale(LC_ALL, "");
+
+    initscr();
+    if (has_colors() == FALSE) {
+      endwin();
+      cout << "Tu terminal no soporta colores\n";
+      exit(1);
+    }
+    noecho();
+    keypad(stdscr, TRUE);
+    start_color();
+    curs_set(0);
+    init_pair(1, COLOR_RED, COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(3, COLOR_WHITE, COLOR_BLACK);
+    getmaxyx(stdscr, y, x);
+  }
+
+  ~VentanaCurses() noexcept { endwin(); }
+
+  const int getx() const noexcept { return x; }
+  const int gety() const noexcept { return y; }
+};
+
+int main() {
+  VentanaCurses miVentana;
+  int ancho = 23, alto = 15;
+  while (ancho < (miVentana.getx() / 2) - 3)
+    ancho += 2;
+  while (alto < miVentana.gety() - 4)
+    alto += 2;
+
+  bool banderaSalir = false;
+
+  // Crear un laberinto y un jugador
+  Laberinto m(ancho, alto);
+  Jugador p;
+  int ch = 0;
+
+  while (!banderaSalir) {
+    m.imprimir(Color::verde);
+    p.imprimir(Color::rojo);
+    p.imprimirInfo(m, Color::blanco);
+    ch = getch();
+
+    switch (ch) {
+    case 'w':
+    case KEY_UP:
+      p.mov(m, 0, -1);
+      break;
+    case 's':
+    case KEY_DOWN:
+      p.mov(m, 0, 1);
+      break;
+    case 'a':
+    case KEY_LEFT:
+      p.mov(m, -1, 0);
+      break;
+    case 'd':
+    case KEY_RIGHT:
+      p.mov(m, 1, 0);
+      break;
+    case 'q':
+    case KEY_EXIT:
+    case 27:
+      banderaSalir = true;
+      break;
+    default:
+      refresh();
+    }
+    // verificar si se ha llegado al final
+    if (p.getpos_y() == m.getalto() - 1) {
+      p.imprimirGanador(Color::blanco);
+      banderaSalir = true;
+    }
+  }
+}
