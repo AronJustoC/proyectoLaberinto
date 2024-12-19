@@ -1,0 +1,15 @@
+// Igorar carpeta output
+output/
+
+// Ignorar archivos de compilación
+*.o
+
+// Ignorar archivos de ejecución
+*~
+
+// Ignorar archivos de depuración
+*.dSYM
+
+// Ignorar archivos de depuración
+*.dSYM              
+

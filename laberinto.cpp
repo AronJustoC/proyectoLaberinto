@@ -4,7 +4,7 @@
 
 using namespace std;
 
-enum class Color { red = 1, green, white };
+enum class Color { rojo = 1, verde, blanco };
 
 class Laberinto {
   using size_type = unsigned long;
@@ -118,6 +118,7 @@ private:
   size_type y;
   size_type contador;
 
+public:
   explicit Jugador(const size_type xx, const size_type yy)
       : x{xx}, y{yy}, contador{0} {}
 
@@ -177,6 +178,9 @@ private:
 
 public:
   VentanaCurses() : x{0}, y{0} {
+    // Establecer el entorno local para soportar UTF-8
+    setlocale(LC_ALL, "");
+
     initscr();
     if (has_colors() == FALSE) {
       endwin();
@@ -198,3 +202,57 @@ public:
   const int getx() const noexcept { return x; }
   const int gety() const noexcept { return y; }
 };
+
+int main() {
+  VentanaCurses miVentana;
+  int ancho = 23, alto = 15;
+  while (ancho < (miVentana.getx() / 2) - 3)
+    ancho += 2;
+  while (alto < miVentana.gety() - 4)
+    alto += 2;
+
+  bool banderaSalir = false;
+
+  // Crear un laberinto y un jugador
+  Laberinto m(ancho, alto);
+  Jugador p;
+  int ch = 0;
+
+  while (!banderaSalir) {
+    m.imprimir(Color::verde);
+    p.imprimir(Color::rojo);
+    p.imprimirInfo(m, Color::blanco);
+    ch = getch();
+
+    switch (ch) {
+    case 'w':
+    case KEY_UP:
+      p.mov(m, 0, -1);
+      break;
+    case 's':
+    case KEY_DOWN:
+      p.mov(m, 0, 1);
+      break;
+    case 'a':
+    case KEY_LEFT:
+      p.mov(m, -1, 0);
+      break;
+    case 'd':
+    case KEY_RIGHT:
+      p.mov(m, 1, 0);
+      break;
+    case 'q':
+    case KEY_EXIT:
+    case 27:
+      banderaSalir = true;
+      break;
+    default:
+      refresh();
+    }
+    // verificar si se ha llegado al final
+    if (p.getpos_y() == m.getalto() - 1) {
+      p.imprimirGanador(Color::blanco);
+      banderaSalir = true;
+    }
+  }
+}
