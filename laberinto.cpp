@@ -37,7 +37,7 @@ public:
     uniform_int_distribution<int> dist(0, 3);
 
     // Crea un laberinto
-    laberinto[1 * ancho + 1] = 0;
+    laberinto[1 * ancho + 1] = 0; // Punto de entrada primer paso
     for (size_type y = 1; y < alto; y += 2) {
       for (size_type x = 1; x < ancho; x += 2) {
         generar_camino(x, y);
@@ -49,10 +49,12 @@ public:
     laberinto[(alto - 1) * ancho + (ancho - 2)] = 0;
   }
 
-  Laberinto(const Laberinto &) = delete;
-  Laberinto &operator=(const Laberinto &) = delete;
-  Laberinto(Laberinto &&) = delete;
-  Laberinto &operator=(Laberinto &&) = delete;
+  Laberinto(const Laberinto &) = delete; // Elimina constructores copia
+  Laberinto &operator=(const Laberinto &) =
+      delete;                       // Elimina constructores copia y asignacion
+  Laberinto(Laberinto &&) = delete; // Elimina constructores move
+  Laberinto &operator=(Laberinto &&) = delete; // Elimina constructores move y
+                                               // asignacion
 
   ~Laberinto() noexcept { delete[] laberinto; }
 
@@ -144,7 +146,7 @@ public:
 };
 
 class Jugador {
-  using size_type = long;
+  using size_type = unsigned long;
 
 private:
   size_type x;
