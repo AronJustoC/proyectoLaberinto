@@ -4,6 +4,10 @@ Este proyecto es una implementación de un juego de laberinto en la consola util
 
 ## Estructura del Código
 
+### Estructura `JugadorPuntuacion`
+- **nombre**: Representa el nombre del jugador.
+- **puntuacion**: Defiene la puntuacion del jugador.
+
 ### Enumeración `Color`
 
 La enumeración `Color` define los colores para diferentes elementos visuales en la pantalla.
@@ -11,6 +15,10 @@ La enumeración `Color` define los colores para diferentes elementos visuales en
 - **rojo**: Representa el color para el jugador y los obstáculos en la ruta.
 - **verde**: Utilizado para mostrar el camino recorrido por el jugador.
 - **blanco**: Usado para resaltar las celdas vacías o el fondo del laberinto.
+
+### Estructura `JugadorPuntuacion` define el nombre del jugador y la puntuacion de la partida terminda.
+- **nombre**: Nombre del jugador actual.
+- **puntuacion**: Puntuacion del jugador.
 
 ### Clase `Laberinto`
 
