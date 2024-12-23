@@ -337,7 +337,7 @@ public:
       return;
     }
 
-    int puntuacionBase = 1000;
+    int puntuacionBase = 10000;
     int puntuacion = puntuacionBase - contador;
 
     // Guardar la puntuación en el archivo
@@ -376,7 +376,7 @@ public:
     attron(COLOR_PAIR(color));
 
     printw("                ¡Ganaste!                \n");
-    printw("Puntuación: %li\n", 1000 - contador);
+    printw("Puntuación: %li\n", 10000 - contador);
     printw("Total de movimientos: %li\n", contador);
 
     guardarPuntuacion();
@@ -405,9 +405,6 @@ private:
 
 public:
   VentanaCurses() : x{0}, y{0} {
-    // Establecer el entorno local para soportar UTF-8
-    setlocale(LC_ALL, "");
-
     initscr();
     if (has_colors() == FALSE) {
       endwin();
@@ -466,8 +463,9 @@ public:
     while (!salir) {
       mostrarMenu();
       int opcion;
+      echo();
       scanw("%d", &opcion);
-
+      noecho();
       switch (opcion) {
       case 1:
         jugarPartida();
