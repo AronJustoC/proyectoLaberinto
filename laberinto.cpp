@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <fstream>
-#include <iostream> //Libreria para entrada y salida
+#include <iostream>
 #include <ncurses.h>
 #include <random>
 
@@ -19,7 +19,6 @@ private:
   uniform_int_distribution<int> dist;
 
 public:
-  // keyword "explicit": hace que el tipo de argumento sea especificado
   Laberinto(const size_type x, const size_type y) : ancho{x}, alto{y} {
     // Asignacion y inicializacion de la matriz
     laberinto = new char[ancho * alto];
@@ -107,7 +106,7 @@ public:
           attroff(COLOR_PAIR(color1));
         } else if (celda == 2) {
           attron(COLOR_PAIR(color2));
-          printw(". "); // Pasó dos veces
+          printw("o "); // Pasó dos veces
           attroff(COLOR_PAIR(color2));
         } else if (celda == 3) {
           attron(COLOR_PAIR(color3));
@@ -167,6 +166,49 @@ private:
     napms(100); // Delay de 100ms para visualizar el movimiento
   }
 
+  bool solverBacktrackingRecursivo(Laberinto &m,
+                                   vector<vector<bool>> &visitado) {
+    // Si llegamos a la última fila, hemos encontrado la salida
+    if (y == m.getalto() - 1) {
+      return true;
+    }
+
+    // Definir las cuatro direcciones posibles: derecha, abajo, izquierda,
+    // arriba
+    const int dx[] = {1, 0, -1, 0};
+    const int dy[] = {0, 1, 0, -1};
+
+    // Probar cada dirección
+    for (int i = 0; i < 4; i++) {
+      size_type newX = x + dx[i];
+      size_type newY = y + dy[i];
+
+      // Verificar si podemos movernos a la nueva posición
+      if (newX > 0 && newX < m.getancho() && newY > 0 && newY < m.getalto() &&
+          !visitado[newY][newX] && puedeMover(m, dx[i], dy[i])) {
+
+        // Marcar como visitado
+        visitado[newY][newX] = true;
+
+        // Mover al jugador
+        moverConDelay(m, dx[i], dy[i]);
+
+        // Llamada recursiva desde la nueva posición
+        if (solverBacktrackingRecursivo(m, visitado)) {
+          return true; // Se encontró un camino a la salida
+        }
+
+        // Si no se encontró solución, retroceder
+        moverConDelay(m, -dx[i], -dy[i]);
+
+        // Opcional: marcar como no visitado para permitir otros caminos
+        // visitado[newY][newX] = false;
+      }
+    }
+
+    return false; // No se encontró solución desde esta posición
+  }
+
 public:
   Jugador(const size_type xx, const size_type yy) : x{xx}, y{yy}, contador{0} {}
 
@@ -182,10 +224,8 @@ public:
   void imprimirInfo(const Laberinto &m, const Color &color) {
     attron(COLOR_PAIR(color));
     move(m.getalto() + 1, 0); // Impresión una línea debajo del laberinto
-    printw("========================================\n");
     printw("Posicion actual: X = %li, Y = %li\n", x, y);
     printw("Total de movimientos: %li\n", contador);
-    printw("========================================\n");
     attroff(COLOR_PAIR(color));
     refresh(); // Actualizar la pantalla
   }
@@ -269,8 +309,21 @@ public:
         }
       }
     }
+  }
 
-    imprimirGanador(Color::blanco);
+  void solverBacktracking(Laberinto &m) {
+    // Matriz para marcar las celdas visitadas
+    vector<vector<bool>> visitado(m.getalto(),
+                                  vector<bool>(m.getancho(), false));
+    visitado[y][x] = true; // Marcar posición inicial como visitada
+
+    // Inicializar visualización
+    m.imprimir_rastro(Color::verde, Color::blanco, Color::rojo);
+    imprimir(Color::rojo);
+    imprimirInfo(m, Color::blanco);
+
+    // Comenzar búsqueda recursiva
+    solverBacktrackingRecursivo(m, visitado);
   }
 
   void guardarPuntuacion() {
@@ -292,8 +345,7 @@ public:
 
     file.close();
 
-    cout << "\nPuntuación guardada exitosamente: " << puntuacion << endl;
-    cout << "========================================\n";
+    printw("\nPuntuación guardada exitosamente: %d\n", puntuacion);
   }
 
   vector<int> listarTopCincoPuntuaciones() {
@@ -322,23 +374,22 @@ public:
     clear();
     refresh();
     attron(COLOR_PAIR(color));
-    printw("\n========================================\n");
+
     printw("                ¡Ganaste!                \n");
-    printw("========================================\n");
     printw("Puntuación: %li\n", 1000 - contador);
     printw("Total de movimientos: %li\n", contador);
-    printw("========================================\n");
 
     guardarPuntuacion();
-    printw("\nPresiona cualquier tecla para continuar...");
-    printw("Los 5 mejores puntuaciones:\n");
-    printw("========================================\n");
-    for (size_t i = 0; i < min(listarTopCincoPuntuaciones().size(), size_t(5));
-         i++) {
-      cout << i + 1 << ". " << listarTopCincoPuntuaciones()[i] << endl;
+
+    printw("\nLos 5 mejores puntuaciones:\n");
+
+    // Almacenar el resultado de listarTopCincoPuntuaciones() en una variable
+    auto puntuaciones = listarTopCincoPuntuaciones();
+
+    for (size_t i = 0; i < min(puntuaciones.size(), size_t(5)); i++) {
+      printw("%zu. %d\n", i + 1, puntuaciones[i]); // Usar %d si son enteros
     }
-    cout << "========================================\n";
-    getch();
+
     attroff(COLOR_PAIR(color));
   }
 
@@ -379,99 +430,189 @@ public:
   const int gety() const noexcept { return y; }
 };
 
-int main() {
-  // Inicializar ncurses
-  initscr();            // No mostrar lo que escribe el usuario
-  cbreak();             // Desactivar buffering de línea
-  keypad(stdscr, TRUE); // Activar las teclas especiales como las de dirección
+class MenuJuego {
+private:
+  VentanaCurses &ventana;
+  Laberinto *laberinto;
+  Jugador *jugador;
+  int ancho, alto;
+  int puntuacion;
 
-  // Mostrar opciones en ncurses
-  printw("Introduzca la opción deseada:\n");
-  printw("[1] Jugar\n");
-  printw("[2] Apoyando la mano izquierda a la pared (DFS)\n");
-  printw("[3] Recorrer el laberinto y probar cada callejón usando solo "
-         "(Backtracking)\n");
+public:
+  MenuJuego(VentanaCurses &v, int w, int h)
+      : ventana(v), ancho(w), alto(h), puntuacion(0) {
+    laberinto = new Laberinto(ancho, alto);
+    jugador = new Jugador();
+  }
 
-  int opcion;
-  scanw("%d", &opcion); // Obtener la opción del usuario en ncurses
+  ~MenuJuego() {
+    delete laberinto;
+    delete jugador;
+  }
 
-  // Obtener la ventana de la terminal
-  VentanaCurses miVentana;
-  int ancho = 23, alto = 15;
-  while (ancho < (miVentana.getx() / 2) - 3)
-    ancho += 2;
-  while (alto < miVentana.gety() - 4)
-    alto += 2;
+  void mostrarMenu() {
+    clear();
+    printw("MENU PRINCIPAL\n");
+    printw("[1] Jugar\n");
+    printw("[2] Resolver (Mano Izquierda)\n");
+    printw("[3] Resolver (Backtracking)\n");
+    printw("[4] Ver Puntuación\n");
+    printw("[5] Salir\n");
+    refresh();
+  }
 
-  Laberinto m(ancho, alto);
-  Jugador p;
-  bool banderaSalir = false;
+  void ejecutarJuego() {
+    bool salir = false;
+    while (!salir) {
+      mostrarMenu();
+      int opcion;
+      scanw("%d", &opcion);
 
-  // Seleccionar la opción
-  switch (opcion) {
-  case 1: {
-    // Crear un laberinto y un jugador
+      switch (opcion) {
+      case 1:
+        jugarPartida();
+        break;
+      case 2:
+        resolverManoIzquierda();
+        break;
+      case 3:
+        resolverBacktracking();
+        break;
+      case 4:
+        mostrarPuntuacion();
+        break;
+      case 5:
+        salir = true;
+        break;
+      default:
+        printw("Opción no válida\n");
+        getch();
+      }
+    }
+  }
+
+private:
+  void jugarPartida() {
+    resetearJuego();
+    bool partidaActiva = true;
     int ch = 0;
-    while (!banderaSalir) {
-      m.imprimir_rastro(Color::verde, Color::blanco,
-                        Color::rojo);   // Mostrar el laberinto
-      p.imprimir(Color::rojo);          // Mostrar  el jugador
-      p.imprimirInfo(m, Color::blanco); // Mostrar la posición del jugador
-      ch = getch();
 
+    while (partidaActiva) {
+      actualizarPantalla();
+
+      ch = getch();
       switch (ch) {
       case 'w':
       case KEY_UP:
-        p.mov(m, 0, -1);
+        jugador->mov(*laberinto, 0, -1);
         break;
       case 's':
       case KEY_DOWN:
-        p.mov(m, 0, 1);
+        jugador->mov(*laberinto, 0, 1);
         break;
       case 'a':
       case KEY_LEFT:
-        p.mov(m, -1, 0);
+        jugador->mov(*laberinto, -1, 0);
         break;
       case 'd':
       case KEY_RIGHT:
-        p.mov(m, 1, 0);
+        jugador->mov(*laberinto, 1, 0);
+        break;
+      case 'r':
+        resetearJuego();
         break;
       case 'q':
       case 27:
-        banderaSalir = true;
+        partidaActiva = false;
         break;
-      default:
-        refresh();
       }
 
-      // Verificar si se ha llegado al final
-      if (p.getpos_y() == m.getalto() - 1) {
-        p.imprimirGanador(Color::blanco);
-        banderaSalir = true;
+      if (verificarVictoria()) {
+        actualizarPuntuacion();
+        mostrarMensajeVictoria();
+        partidaActiva = false;
       }
     }
-    break;
-  }
-  case 2:
-    m.imprimir_rastro(Color::verde, Color::blanco, Color::rojo);
-    p.imprimir(Color::rojo);
-    p.imprimirInfo(m, Color::blanco);
-    p.solverManoIzquierda(m);
-    break;
-  case 3:
-    m.imprimir_rastro(Color::verde, Color::blanco, Color::rojo);
-    p.imprimir(Color::rojo);
-    p.imprimirInfo(m, Color::blanco);
-    // p.solverBacktracking(m);
-    break;
-  default:
-    printw("Opción no válida.\n");
-    break;
+    esperarTecla();
   }
 
-  // Esperar a que el usuario presione una tecla
-  printw("\nPresione cualquier tecla para continuar...");
-  getch();
+  void resolverManoIzquierda() {
+    resetearJuego();
+    actualizarPantalla();
+    jugador->solverManoIzquierda(*laberinto);
+    if (verificarVictoria()) {
+      mostrarMensajeVictoria();
+    }
+    esperarTecla();
+  }
+
+  void resolverBacktracking() {
+    resetearJuego();
+    actualizarPantalla();
+    jugador->solverBacktracking(*laberinto);
+    if (verificarVictoria()) {
+      mostrarMensajeVictoria();
+    }
+    esperarTecla();
+  }
+
+  void actualizarPantalla() {
+    laberinto->imprimir_rastro(Color::verde, Color::blanco, Color::rojo);
+    jugador->imprimir(Color::rojo);
+    jugador->imprimirInfo(*laberinto, Color::blanco);
+    refresh();
+  }
+
+  void resetearJuego() {
+    delete laberinto;
+    delete jugador;
+
+    laberinto = new Laberinto(ancho, alto);
+    jugador = new Jugador();
+
+    clear();
+    refresh();
+  }
+
+  bool verificarVictoria() {
+    return jugador->getpos_y() == laberinto->getalto() - 1;
+  }
+
+  void actualizarPuntuacion() { puntuacion += 100; }
+
+  void mostrarPuntuacion() {
+    clear();
+    printw("Puntuación actual: %d\n", puntuacion);
+    esperarTecla();
+  }
+
+  void mostrarMensajeVictoria() { jugador->imprimirGanador(Color::blanco); }
+
+  void esperarTecla() {
+    printw("\nPresione cualquier tecla para continuar...");
+    getch();
+  }
+};
+
+int main() {
+  // Inicializar ncurses
+  initscr();
+  cbreak();
+  keypad(stdscr, TRUE);
+  noecho();
+  start_color();
+
+  // Configurar dimensiones
+  VentanaCurses ventana;
+  int ancho = 23, alto = 15;
+  while (ancho < (ventana.getx() / 2) - 3)
+    ancho += 2;
+  while (alto < ventana.gety() - 4)
+    alto += 2;
+
+  // Crear y ejecutar el juego
+  MenuJuego menu(ventana, ancho, alto);
+  menu.ejecutarJuego();
 
   // Finalizar ncurses
   endwin();
