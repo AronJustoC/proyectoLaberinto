@@ -2,7 +2,137 @@
 
 Este proyecto es una implementación de un juego de laberinto en la consola utilizando la biblioteca `ncurses` para la visualización, y en el que un jugador puede recorrer un laberinto generado aleatoriamente. El juego tiene la capacidad de mover al jugador por el laberinto, mostrar un rastro del camino recorrido, y resolver el laberinto mediante algoritmos como el de "mano izquierda" y "backtracking". Además, se guarda la puntuación del jugador y se mantienen las mejores puntuaciones en un archivo.
 
-## Estructura del Código
+Este documento proporciona instrucciones detalladas para configurar un entorno de desarrollo en Linux e instalar la biblioteca `ncurses`.
+
+---
+
+## 1. **Requisitos Previos**
+
+### 1.1. **Distribución Linux Requerida**
+Asegúrate de estar usando una distribución basada en Debian/Ubuntu, Fedora, Arch, o cualquier otra que permita la instalación de herramientas de desarrollo y bibliotecas C.
+
+### 1.2. **Herramientas Necesarias**
+1. **Compilador GCC:** Necesario para compilar programas en C que utilizan `ncurses`.
+2. **Biblioteca `ncurses`:** Proporciona funciones para interfaces de usuario basadas en terminal.
+3. **Editor de Texto:** Puedes usar Vim, Nano, o cualquier editor con soporte para C.
+
+---
+
+## 2. **Configuración del Entorno**
+
+### 2.1. **Actualizar el Sistema**
+Ejecuta los siguientes comandos para actualizar el sistema:
+```bash
+sudo apt update && sudo apt upgrade -y  # Para distribuciones basadas en Debian/Ubuntu
+sudo dnf update -y                     # Para distribuciones Fedora
+sudo pacman -Syu                       # Para distribuciones Arch
+```
+
+### 2.2. **Instalar Herramientas de Desarrollo**
+Asegúrate de que las herramientas esenciales de desarrollo estén instaladas:
+
+#### Debian/Ubuntu:
+```bash
+sudo apt install build-essential -y
+```
+
+#### Fedora:
+```bash
+sudo dnf groupinstall "Development Tools" -y
+```
+
+#### Arch:
+```bash
+sudo pacman -S base-devel
+```
+
+---
+
+## 3. **Instalación de la Biblioteca `ncurses`**
+
+### 3.1. **Verificar si `ncurses` está instalado**
+Ejecuta:
+```bash
+ldconfig -p | grep ncurses
+```
+Si el comando no muestra ningún resultado, procede con la instalación.
+
+### 3.2. **Instalar `ncurses`**
+
+#### Debian/Ubuntu:
+```bash
+sudo apt install libncurses5-dev libncursesw5-dev -y
+```
+
+#### Fedora:
+```bash
+sudo dnf install ncurses-devel -y
+```
+
+#### Arch:
+```bash
+sudo pacman -S ncurses
+```
+
+### 3.3. **Confirmar la Instalación**
+Ejecuta:
+```bash
+pkg-config --libs --cflags ncurses
+```
+Si no hay errores, la instalación fue exitosa.
+
+---
+
+## 4. **Crear un Programa de Prueba con `ncurses`**
+
+### 4.1. **Código de Ejemplo**
+Crea un archivo llamado `programa_ncurses.c` y copia el siguiente código:
+
+```c
+#include <ncurses.h>
+
+int main() {
+    initscr();              // Inicia ncurses
+    printw("Hola, ncurses!\n");
+    refresh();              // Muestra en pantalla
+    getch();                // Espera una entrada del usuario
+    endwin();               // Finaliza ncurses
+    return 0;
+}
+```
+
+### 4.2. **Compilar el Programa**
+Compila el programa con:
+```bash
+gcc programa_ncurses.c -o programa_ncurses -lncurses
+```
+
+### 4.3. **Ejecutar el Programa**
+Ejecuta el programa:
+```bash
+./programa_ncurses
+```
+Deberías ver "Hola, ncurses!" en la terminal.
+
+---
+
+## 5. **Solución de Problemas**
+
+### Error: `ncurses.h: No such file or directory`
+- Asegúrate de haber instalado correctamente las bibliotecas de desarrollo de `ncurses`.
+
+### Error: `undefined reference to 'initscr'`
+- Asegúrate de incluir `-lncurses` al compilar.
+
+---
+
+## 6. **Referencias Adicionales**
+- [Documentación Oficial de ncurses](https://invisible-island.net/ncurses/ncurses.html)
+- [Guía de Programación con ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)
+
+
+
+## 7.  **Estructura del Código**
 
 ### Estructura `JugadorPuntuacion`
 - **nombre**: Representa el nombre del jugador.
@@ -94,7 +224,7 @@ La función principal se encarga de inicializar la pantalla, configurar el color
 6. Ejecutar un algoritmo para resolver el laberinto (por ejemplo, `solverBacktracking` o `solverManoIzquierda`).
 7. Guardar la puntuación final del jugador y mostrar las mejores puntuaciones.
 
-## Instrucciones para Ejecutar
+## 8. **Instrucciones para Ejecutar**
 
 1. Compila el código con el siguiente comando:
 
