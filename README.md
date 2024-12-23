@@ -200,7 +200,7 @@ La clase `Jugador` gestiona la posición del jugador dentro del laberinto y las 
 
 - **moverConDelay(Laberinto &m, int dx, int dy)**: Mueve al jugador con un retraso visual, de modo que el movimiento sea visible en la pantalla.
 
-- **mov(Laberinto &m, const size_type xx, const size_type yy)**: Realiza el movimiento del jugador en las coordenadas `(xx, yy)` dentro del laberinto. Actualiza el laberinto con el nuevo estado del jugador.
+- **mov(Laberinto &m, const size_type xx, const size_type yy)**: Realiza el movimiento del jugador en las coordenadas `(xx, yy)` dentro del laberinto. Actualiza el laberinto con el nuevo estado del jugador, controles ASWD O DIRECCIONALES.
 
 - **solverBacktrackingRecursivo(Laberinto &m, vector<vector<bool>> &visitado)**: Implementación recursiva del algoritmo de backtracking para resolver el laberinto. Intenta mover al jugador hacia la salida del laberinto explorando las celdas no visitadas.
 
