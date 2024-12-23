@@ -91,5 +91,5 @@ La función principal se encarga de inicializar la pantalla, configurar el color
 1. Compila el código con el siguiente comando:
 
    ```bash
-   g++ laberinto.cpp -o output/laberinto -lncurses
+   g++ laberinto.cpp -o output/laberinto -lncurses && ./output/laberinto
    ```
