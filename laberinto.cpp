@@ -163,7 +163,7 @@ private:
     imprimir(Color::rojo);
     imprimirInfo(m, Color::blanco);
     refresh();
-    napms(100); // Delay de 100ms para visualizar el movimiento
+    napms(50); // Delay de 100ms para visualizar el movimiento
   }
 
   bool solverBacktrackingRecursivo(Laberinto &m,
@@ -526,7 +526,6 @@ private:
       }
 
       if (verificarVictoria()) {
-        actualizarPuntuacion();
         mostrarMensajeVictoria();
         partidaActiva = false;
       }
@@ -576,11 +575,9 @@ private:
     return jugador->getpos_y() == laberinto->getalto() - 1;
   }
 
-  void actualizarPuntuacion() { puntuacion += 100; }
-
   void mostrarPuntuacion() {
     clear();
-    printw("Puntuación actual: %d\n", puntuacion);
+    mostrarMensajeVictoria();
     esperarTecla();
   }
 
