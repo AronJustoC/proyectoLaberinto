@@ -6,6 +6,11 @@
 
 using namespace std;
 
+struct JugadorPuntuacion {
+  string nombre;
+  int puntuacion;
+};
+
 enum class Color { rojo = 1, verde, blanco };
 
 class Laberinto {
@@ -337,37 +342,54 @@ public:
       return;
     }
 
+    string nombreJugador;
+    printw("\nIngrese nombre del jugador: ");
+    char nombre[50];
+    echo();
+    getstr(nombre);
+    noecho();
+    nombreJugador = string(nombre);
+
     int puntuacionBase = 10000;
     int puntuacion = puntuacionBase - contador;
 
-    // Guardar la puntuación en el archivo
-    file << puntuacion << endl;
+    JugadorPuntuacion jugador;
+    jugador.nombre = nombreJugador;
+    jugador.puntuacion = puntuacion;
+
+    // Guardar el nombre y la puntuación en el archivo
+    file << jugador.nombre << " " << jugador.puntuacion << endl;
 
     file.close();
 
-    printw("\nPuntuación guardada exitosamente: %d\n", puntuacion);
+    printw("\nPuntuación guardada exitosamente: %s %d\n",
+           jugador.nombre.c_str(), jugador.puntuacion);
   }
 
-  vector<int> listarTopCincoPuntuaciones() {
+  vector<JugadorPuntuacion> listarTopCincoPuntuaciones() {
     ifstream file("puntuacion.txt");
     if (!file) {
       cerr << "Error: No se pudo abrir el archivo 'puntuacion.txt'." << endl;
       return {};
     }
 
-    vector<int> puntuaciones;
+    vector<JugadorPuntuacion> jugadores;
+    string nombre;
     int puntuacion;
 
-    // Leer las puntuaciones desde el archivo
-    while (file >> puntuacion) {
-      puntuaciones.push_back(puntuacion);
+    // Leer los datos de los jugadores (nombre y puntuación)
+    while (file >> nombre >> puntuacion) {
+      jugadores.push_back({nombre, puntuacion});
     }
     file.close();
 
-    // Ordenar en orden descendente
-    sort(puntuaciones.begin(), puntuaciones.end(), greater<int>());
+    // Ordenar los jugadores en orden descendente por puntuación
+    sort(jugadores.begin(), jugadores.end(),
+         [](const JugadorPuntuacion &a, const JugadorPuntuacion &b) {
+           return a.puntuacion > b.puntuacion;
+         });
 
-    return puntuaciones;
+    return jugadores;
   }
 
   void imprimirGanador(const Color &color) {
@@ -378,16 +400,15 @@ public:
     printw("                ¡Ganaste!                \n");
     printw("Puntuación: %li\n", 10000 - contador);
     printw("Total de movimientos: %li\n", contador);
-
-    guardarPuntuacion();
-
     printw("\nLos 5 mejores puntuaciones:\n");
 
-    // Almacenar el resultado de listarTopCincoPuntuaciones() en una variable
-    auto puntuaciones = listarTopCincoPuntuaciones();
+    // Obtener los 5 mejores jugadores y sus puntuaciones
+    auto jugadores = listarTopCincoPuntuaciones();
 
-    for (size_t i = 0; i < min(puntuaciones.size(), size_t(5)); i++) {
-      printw("%zu. %d\n", i + 1, puntuaciones[i]); // Usar %d si son enteros
+    // Mostrar los 5 mejores
+    for (size_t i = 0; i < min(jugadores.size(), size_t(5)); i++) {
+      printw("%zu. %s - %d\n", i + 1, jugadores[i].nombre.c_str(),
+             jugadores[i].puntuacion);
     }
 
     attroff(COLOR_PAIR(color));
@@ -530,6 +551,7 @@ private:
         partidaActiva = false;
       }
     }
+    jugador->guardarPuntuacion();
     esperarTecla();
   }
 
@@ -540,6 +562,7 @@ private:
     if (verificarVictoria()) {
       mostrarMensajeVictoria();
     }
+    jugador->guardarPuntuacion();
     esperarTecla();
   }
 
@@ -550,6 +573,7 @@ private:
     if (verificarVictoria()) {
       mostrarMensajeVictoria();
     }
+    jugador->guardarPuntuacion();
     esperarTecla();
   }
 
