@@ -517,7 +517,10 @@ private:
     int ch = 0;
 
     while (partidaActiva) {
-      actualizarPantalla();
+      laberinto->imprimir(Color::verde);
+      jugador->imprimir(Color::rojo);
+      jugador->imprimirInfo(*laberinto, Color::blanco);
+      refresh();
 
       ch = getch();
       switch (ch) {
