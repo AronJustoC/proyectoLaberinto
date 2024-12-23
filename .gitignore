@@ -9,8 +9,6 @@ output/
 
 // Ignorar archivos de depuración
 *.dSYM
-
-// Ignorar archivos de depuración
-*.dSYM              
+          
 // Ignorar archivos .txt
 *.txt
