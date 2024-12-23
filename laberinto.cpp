@@ -147,6 +147,26 @@ private:
   size_type y;
   size_type contador;
 
+  bool puedeMover(Laberinto &m, int dx, int dy) {
+    auto mz = m.getlaberinto();
+    size_type newX = x + dx;
+    size_type newY = y + dy;
+
+    if (newX <= 0 || newX >= m.getancho() || newY <= 0 || newY >= m.getalto())
+      return false;
+
+    return mz[newY * m.getancho() + newX] != 1;
+  }
+
+  void moverConDelay(Laberinto &m, int dx, int dy) {
+    mov(m, dx, dy);
+    m.imprimir_rastro(Color::verde, Color::blanco, Color::rojo);
+    imprimir(Color::rojo);
+    imprimirInfo(m, Color::blanco);
+    refresh();
+    napms(100); // Delay de 100ms para visualizar el movimiento
+  }
+
 public:
   Jugador(const size_type xx, const size_type yy) : x{xx}, y{yy}, contador{0} {}
 
@@ -195,7 +215,63 @@ public:
     ++contador;
   }
 
-  void solverManoIzquierda(Laberinto &m) {}
+  void solverManoIzquierda(Laberinto &m) {
+    // Dirección: 0 = norte, 1 = este, 2 = sur, 3 = oeste
+    int direccion = 1; // Comenzamos mirando hacia el este
+
+    while (y < m.getalto() - 1) { // Mientras no lleguemos al final
+      // Checar la dirección izquierda
+      int izquierda = (direccion + 3) % 4;
+      int dx = 0, dy = 0;
+
+      // Intentar moverse a la izquierda primero
+      switch (izquierda) {
+      case 0:
+        dy = -1;
+        break; // norte
+      case 1:
+        dx = 1;
+        break; // este
+      case 2:
+        dy = 1;
+        break; // sur
+      case 3:
+        dx = -1;
+        break; // oeste
+      }
+
+      if (puedeMover(m, dx, dy)) {
+        direccion = izquierda;
+        moverConDelay(m, dx, dy);
+      } else {
+        // Si no puede ir a la izquierda, intenta seguir adelante
+        dx = dy = 0;
+        switch (direccion) {
+        case 0:
+          dy = -1;
+          break;
+        case 1:
+          dx = 1;
+          break;
+        case 2:
+          dy = 1;
+          break;
+        case 3:
+          dx = -1;
+          break;
+        }
+
+        if (puedeMover(m, dx, dy)) {
+          moverConDelay(m, dx, dy);
+        } else {
+          // Si no puede seguir adelante, gira a la derecha
+          direccion = (direccion + 1) % 4;
+        }
+      }
+    }
+
+    imprimirGanador(Color::blanco);
+  }
 
   void guardarPuntuacion() {
     ofstream file;
@@ -380,7 +456,7 @@ int main() {
     m.imprimir_rastro(Color::verde, Color::blanco, Color::rojo);
     p.imprimir(Color::rojo);
     p.imprimirInfo(m, Color::blanco);
-    // p.solverManoIzquierda(m);
+    p.solverManoIzquierda(m);
     break;
   case 3:
     m.imprimir_rastro(Color::verde, Color::blanco, Color::rojo);
